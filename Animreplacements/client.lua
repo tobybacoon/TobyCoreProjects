@@ -1,7 +1,8 @@
 AddStateBagChangeHandler('policeAnim', nil, function(bagName, key, value, reserved, replicated)
-    if not value then return end
-    local sourcePlayer = GetPlayerFromServerId(tonumber(id))
-    local playerPed = GetPlayerPed(sourcePlayer)
-
-    SetWeaponAnimationOverride(playerPed, value and "customanim" or "default")
+    local prefix, id = bagName:match("^(.-):(%d+)$")
+    if prefix == 'player' then
+        local sourcePlayer = GetPlayerFromServerId(tonumber(id))
+        local playerPed = GetPlayerPed(sourcePlayer)
+        SetWeaponAnimationOverride(playerPed, value and "Michael" or "default")
+    end
 end)
