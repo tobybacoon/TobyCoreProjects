@@ -30,7 +30,11 @@ local jobColors = {
 }
 
 local function sendMessage(playerId, message, job)
-    TriggerClientEvent('chatMessage', playerId, '', 'mdt_'..job, message)
+    TriggerEvent('chat:addMessage', {
+        color = {jobColors[job].r, jobColors[job].g, jobColors[job].b},
+        multiline = true,
+        args = {playerId, message}
+      })
 end
 
 Chat:RegisterCommand("mdt", function(source, args, rawCommand)
@@ -39,6 +43,7 @@ Chat:RegisterCommand("mdt", function(source, args, rawCommand)
     local input = rawCommand:sub(5):gsub("^%s+", "")
     local target, message = input:match("^(%S+)%s*(.*)")
     local name = character:getName()
+    local firstname, lastname = name:match("^(%S+)%s+(%S+)$")
     local callsign = character:getMetadata('callsign')
     local targetJobName = jobFilter[target]
     local sentMessage
@@ -95,9 +100,12 @@ Chat:RegisterCommand("mdt", function(source, args, rawCommand)
     else
         local found = false
         for _, playerId in ipairs(players) do
-            local targetPlayer = Core.getCharacterBySource(playerId)
+            local targetCharacter = Core.getCharacterBySource(playerId)
+            local name = targetCharacter:getName()
+            local targetFirstName, targetLastName = name:match("^(%S+)%s+(%S+)$")
+            local targetcallsign = targetCharacter:getMetadata('callsign')
             if callsign == target then
-                finalMessage = string.format("%s.%s (%s) To %s.%s (%s) | %s", firstname:upper():sub(1, 1), lastname:upper(), callsign, targetPlayer.PlayerData.charinfo.firstname:upper():sub(1, 1), targetPlayer.PlayerData.charinfo.lastname:upper(), targetPlayer.PlayerData.metadata.callsign, message)
+                finalMessage = string.format("%s.%s (%s) To %s.%s (%s) | %s", firstname:upper():sub(1, 1), lastname:upper(), callsign, targetFirstName:upper():sub(1, 1), targetLastName:upper(), targetcallsign, message)
                 sendMessage(playerId, finalMessage, job)
                 sendMessage(source, finalMessage, job)
                 found = true
