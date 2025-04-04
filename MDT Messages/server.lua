@@ -30,10 +30,9 @@ local jobColors = {
 }
 
 local function sendMessage(playerId, message, job)
-    TriggerEvent('chat:addMessage', {
-        color = {jobColors[job].r, jobColors[job].g, jobColors[job].b},
-        multiline = true,
-        args = {playerId, message}
+    exports.chat:addMessage(playerId, {
+        color = {255, 0, 0},
+        args = {"MDT", message}
       })
 end
 
