@@ -30,7 +30,7 @@ local jobColors = {
 }
 
 local function sendMessage(playerId, message, job)
-    exports.chat:addMessage(playerId, {
+    Chat:addMessage(playerId, {
         color = {255, 0, 0},
         args = {"MDT", message}
       })
