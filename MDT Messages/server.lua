@@ -26,14 +26,28 @@ local allowedJobs = {
 }
 
 local jobColors = {
-    sasp = {r = 0, g = 0, b = 255},-- Blue
+    sasp = { r = 0, g = 0, b = 255 }, -- Blue
 }
 
 local function sendMessage(playerId, message, job)
-    Chat:addMessage(playerId, {
-        color = {255, 0, 0},
-        args = {"MDT", message}
-      })
+    local selectedJob
+    for k, _ in pairs(job) do
+        if jobColors[k] then
+            selectedJob = k
+            break
+        end
+    end
+    if selectedJob then
+        Chat:addMessage(playerId, {
+            color = { jobColors[selectedJob].r, jobColors[selectedJob].g, jobColors[selectedJob].b },
+            args = { "MDT", message }
+        })
+    else
+        Chat:addMessage(playerId, {
+            color = { 255, 255, 255 },
+            args = { "MDT", message }
+        })
+    end
 end
 
 Chat:RegisterCommand("mdt", function(source, args, rawCommand)
@@ -46,14 +60,15 @@ Chat:RegisterCommand("mdt", function(source, args, rawCommand)
     local callsign = character:getMetadata('callsign')
     local targetJobName = jobFilter[target]
     local sentMessage
+    local finalMessage
     if not job then return end
 
-    if debug then 
+    if debug then
         print("MDT Message sent")
-        print('Job filter:' ..json.encode(job))
-        print('Character:' ..json.encode(character))
-        print('Name:' ..name)
-        print('Callsign:' ..callsign)
+        print('Job filter:' .. json.encode(job))
+        print('Character:' .. json.encode(character))
+        print('Name:' .. name)
+        print('Callsign:' .. callsign)
     end
 
     if input == "" then
@@ -78,9 +93,8 @@ Chat:RegisterCommand("mdt", function(source, args, rawCommand)
         sendMessage(source, sentMessage, job)
 
         if not messageSent then
-            TriggerClientEvent('lib:notify', src, {type = 'error', description = "No players with that job found"})
+            TriggerClientEvent('lib:notify', src, { type = 'error', description = "No players with that job found" })
         end
-
     elseif target == "all" then
         finalMessage = string.format("%s.%s (%s) | %s", firstname:upper():sub(1, 1), lastname:upper(), callsign, message)
         local messageSent = false
@@ -104,7 +118,9 @@ Chat:RegisterCommand("mdt", function(source, args, rawCommand)
             local targetFirstName, targetLastName = name:match("^(%S+)%s+(%S+)$")
             local targetcallsign = targetCharacter:getMetadata('callsign')
             if callsign == target then
-                finalMessage = string.format("%s.%s (%s) To %s.%s (%s) | %s", firstname:upper():sub(1, 1), lastname:upper(), callsign, targetFirstName:upper():sub(1, 1), targetLastName:upper(), targetcallsign, message)
+                finalMessage = string.format("%s.%s (%s) To %s.%s (%s) | %s", firstname:upper():sub(1, 1),
+                    lastname:upper(), callsign, targetFirstName:upper():sub(1, 1), targetLastName:upper(), targetcallsign,
+                    message)
                 sendMessage(playerId, finalMessage, job)
                 sendMessage(source, finalMessage, job)
                 found = true
@@ -113,14 +129,13 @@ Chat:RegisterCommand("mdt", function(source, args, rawCommand)
         end
 
         if not found then
-            TriggerClientEvent('lib:notify', src, {type = 'error', description = "Player with that callsign not found"})
+            TriggerClientEvent('lib:notify', src, { type = 'error', description = "Player with that callsign not found" })
         end
     end
-
 end, {
     description = "Send a message to your colleagues or open the MDT.",
     params = {
-        {name="target", help="Callsign, Nickname, Job Name, or 'all'. Leave blank to open MDT"},
-        {name="message", help="Message to send. Leave blank to open MDT"}
+        { name = "target",  help = "Callsign, Nickname, Job Name, or 'all'. Leave blank to open MDT" },
+        { name = "message", help = "Message to send. Leave blank to open MDT" }
     },
-},'')
+}, '')
