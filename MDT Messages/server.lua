@@ -26,7 +26,12 @@ local allowedJobs = {
 }
 
 local jobColors = {
-    sasp = { r = 0, g = 0, b = 255 }, -- Blue
+    police = {r = 0, g = 0, b = 255},-- Blue
+    marshals = {r = 210, g = 180, b = 140}, -- Tan
+    ambulance = {r = 255, g = 0, b = 0},-- Red
+    medical = {r = 0, g = 128, b = 0}, -- Green
+    sacl = {r = 220, g = 20, b = 60},-- Crimson Red
+    doj = {r = 255, g = 215, b = 0}-- Gold
 }
 
 local function sendMessage(playerId, message, job)
@@ -50,9 +55,35 @@ local function sendMessage(playerId, message, job)
     end
 end
 
+Chat:RegisterCommand("Callsign", function(source, args, rawCommand)
+    local character = Core.getCharacterBySource(source)
+    local job = character:hasGroup(jobFilter)
+    if not job then
+        TriggerClientEvent('lib:notify', source,
+            { type = 'error', description = "You are not in a job that can use this" })
+        return
+    end
+
+    character:setMetadata('callsign', args[1])
+end, {
+    description = "Set your Callsign.",
+    params = {
+        { name = "Callsign", help = "Enter The Callsign You Want to Use" }
+    },
+}, '')
+
+
+
 Chat:RegisterCommand("mdt", function(source, args, rawCommand)
     local character = Core.getCharacterBySource(source)
     local job = character:hasGroup(jobFilter)
+
+    if not job then
+        TriggerClientEvent('lib:notify', source,
+            { type = 'error', description = "You are not in a job that can use the MDT" })
+        return
+    end
+
     local input = rawCommand:sub(5):gsub("^%s+", "")
     local target, message = input:match("^(%S+)%s*(.*)")
     local name = character:getName()
@@ -61,13 +92,12 @@ Chat:RegisterCommand("mdt", function(source, args, rawCommand)
     local targetJobName = jobFilter[target]
     local sentMessage
     local finalMessage
-    if not job then return end
 
     if debug then
         print("MDT Message sent")
         print('Job filter:' .. json.encode(job))
         print('Character:' .. json.encode(character))
-        print('Name:' .. name)
+        print('FirstName: ' .. firstname .. ' LastName: ' .. lastname)
         print('Callsign:' .. callsign)
     end
 
@@ -78,7 +108,8 @@ Chat:RegisterCommand("mdt", function(source, args, rawCommand)
 
     if targetJobName then
         local readableName = readableNames[targetJobName]
-        local sentMessage = string.format("DIRECT TO %s | %s.%s (%s) | %s", readableName, firstname:upper():sub(1, 1), lastname:upper(), callsign, message)
+        local sentMessage = string.format("DIRECT TO %s | %s.%s (%s) | %s", readableName, firstname:upper():sub(1, 1),
+            lastname:upper(), callsign, message)
         local players = Core.getCharacters()
 
         local messageSent = false
